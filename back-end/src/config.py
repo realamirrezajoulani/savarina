@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from starlette.middleware.gzip import GZipMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
 from database import lifespan
 from routers import customer, admin, invoice, payment, rental, vehicle, vehicle_insurance, comment, post, authentication
@@ -24,6 +25,18 @@ app = FastAPI(lifespan=lifespan,
 
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=4)
 
+origins = [
+    "*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
@@ -31,9 +44,9 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Expect-CT"] = "max-age=86400, enforce"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
+    # response.headers["Access-Control-Allow-Origin"] = "*"
+    # response.headers["Access-Control-Allow-Methods"] = "*"
+    # response.headers["Access-Control-Allow-Headers"] = "*"
     return response
 
 app.include_router(authentication.router, tags=["authentication"])
