@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from starlette.middleware.gzip import GZipMiddleware
 
 from database import lifespan
@@ -24,6 +24,17 @@ app = FastAPI(lifespan=lifespan,
 
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=4)
 
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Expect-CT"] = "max-age=86400, enforce"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
 
 app.include_router(authentication.router, tags=["authentication"])
 app.include_router(customer.router, tags=["customers"])
