@@ -31,8 +31,8 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Expect-CT"] = "max-age=86400, enforce"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return response
 
