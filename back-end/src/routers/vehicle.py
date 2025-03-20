@@ -22,13 +22,6 @@ async def get_vehicles(
     session: AsyncSession = Depends(get_session),
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, le=100),
-    _user: dict = Depends(
-        require_roles(
-            AdminRole.SUPER_ADMIN.value,
-            AdminRole.GENERAL_ADMIN.value,
-            CustomerRole.CUSTOMER.value,
-        )
-    ),
 ):
 
     vehicles_query = select(Vehicle).offset(offset).limit(limit)
@@ -56,11 +49,6 @@ async def create_vehicle(
         ),
 ):
     try:
-        # # Create database model with validated data and hashed credentials
-        # db_customer = Customer.model_validate(
-        #     customer_create,
-        #     update={"password": hashed_password, "created_at": datetime.now()},
-        # )
 
         db_vehicle = Vehicle(
             plate_number=vehicle_create.plate_number,
@@ -106,13 +94,6 @@ async def get_vehicle(
         *,
         session: AsyncSession = Depends(get_session),
         vehicle_id: UUID,
-        _user: dict = Depends(
-            require_roles(
-                AdminRole.SUPER_ADMIN.value,
-                AdminRole.GENERAL_ADMIN.value,
-                CustomerRole.CUSTOMER.value,
-            )
-        ),
 ):
 
     # Attempt to retrieve the author record from the database
@@ -146,10 +127,6 @@ async def patch_vehicle(
     vehicle = await session.get(Vehicle, vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="وسیله نقلیه پیدا نشد")
-
-    # if _user["role"] == UserRole.AUTHOR.value and author_id != UUID(_user["id"]):
-    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-    #                         detail="You cannot edit another author's information.")
 
     # Prepare the update data, excluding unset fields.
     vehicle_data = vehicle_update.model_dump(exclude_unset=True)
@@ -187,11 +164,6 @@ async def delete_vehicle(
     if not vehicle:
         raise HTTPException(status_code=404, detail="وسیله نقلیه پیدا نشد")
 
-    # Check if the user is trying to delete themselves or is an admin/authorized full role.
-    # if _user["role"] == UserRole.AUTHOR.value and author_id != UUID(_user["id"]):
-    #         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-    #                             detail="You do not have permission to delete other authors")
-
 
     # Proceed to delete the author if the above conditions are met.
     await session.delete(vehicle)
@@ -215,13 +187,6 @@ async def search_vehicles(
         operator: LogicalOperator,
         offset: int = Query(default=0, ge=0),
         limit: int = Query(default=100, le=100),
-        _user: dict = Depends(
-            require_roles(
-                AdminRole.SUPER_ADMIN.value,
-                AdminRole.GENERAL_ADMIN.value,
-                CustomerRole.CUSTOMER.value,
-            )
-        ),
 ):
 
     conditions = []  # Initialize the list of filter conditions
@@ -264,5 +229,3 @@ async def search_vehicles(
         raise HTTPException(status_code=404, detail="وسیله نقلیه پیدا نشد")
 
     return vehicles
-
-
