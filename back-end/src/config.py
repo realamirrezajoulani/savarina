@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
-from starlette.middleware.gzip import GZipMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import ORJSONResponse
 
 from database import lifespan
 from routers import customer, admin, invoice, payment, rental, vehicle, vehicle_insurance, comment, post, authentication
@@ -21,7 +22,8 @@ app = FastAPI(lifespan=lifespan,
               license_info={
                   "name": "MIT",
                   "url": "https://opensource.org/license/MIT",
-              })
+              },
+              default_response_class=ORJSONResponse)
 
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=4)
 
