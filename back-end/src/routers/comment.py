@@ -21,23 +21,7 @@ async def get_comments(
     session: AsyncSession = Depends(get_session),
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, le=100),
-    _user: dict = Depends(
-        require_roles(
-            AdminRole.SUPER_ADMIN.value,
-            AdminRole.GENERAL_ADMIN.value,
-            CustomerRole.CUSTOMER.value,
-        )
-    ),
 ):
-    if _user["role"] == CustomerRole.CUSTOMER.value:
-        comment_query = select(Comment).where(Comment.customer_id == _user["id"])
-        comments = await session.execute(comment_query)
-
-        comments_list = comments.scalars().all()
-
-        return comments_list
-
-
     comments_query = select(Comment).offset(offset).limit(limit)
     comments = await session.execute(comments_query)
 
@@ -101,13 +85,6 @@ async def get_comment(
         *,
         session: AsyncSession = Depends(get_session),
         comment_id: UUID,
-        _user: dict = Depends(
-            require_roles(
-                AdminRole.SUPER_ADMIN.value,
-                AdminRole.GENERAL_ADMIN.value,
-                CustomerRole.CUSTOMER.value,
-            )
-        ),
 ):
 
     # Attempt to retrieve the author record from the database
@@ -116,10 +93,6 @@ async def get_comment(
     # If the author is found, process the data and add necessary links
     if not comment:
         raise HTTPException(status_code=404, detail="کامنت پیدا نشد")
-
-    if _user["role"] == CustomerRole.CUSTOMER.value and comment.customer_id != _user["id"]:
-        raise HTTPException(status_code=403,
-                            detail="شما دسترسی لازم برای مشاهده اطلاعات نظر های  دیگر را ندارید")
 
     return comment
 
@@ -214,12 +187,6 @@ async def search_comments(
         operator: LogicalOperator,
         offset: int = Query(default=0, ge=0),
         limit: int = Query(default=100, le=100),
-        _user: dict = Depends(
-            require_roles(
-                AdminRole.SUPER_ADMIN.value,
-                AdminRole.GENERAL_ADMIN.value,
-            )
-        ),
 ):
 
     conditions = []  # Initialize the list of filter conditions

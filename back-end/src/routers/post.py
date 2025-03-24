@@ -21,20 +21,7 @@ async def get_posts(
     session: AsyncSession = Depends(get_session),
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, le=100),
-    _user: dict = Depends(
-        require_roles(
-            AdminRole.SUPER_ADMIN.value,
-            AdminRole.GENERAL_ADMIN.value,
-        )
-    ),
 ):
-    if _user["role"] == AdminRole.GENERAL_ADMIN.value:
-        admin_query = select(Post).where(Post.admin_id == _user["id"])
-        admins = await session.execute(admin_query)
-
-        admins_list = admins.scalars().all()
-
-        return admins_list
 
     posts_query = select(Post).offset(offset).limit(limit)
     posts = await session.execute(posts_query)
@@ -42,7 +29,6 @@ async def get_posts(
     posts_list = posts.scalars().all()
 
     return posts_list
-
 
 
 @router.post(
@@ -88,6 +74,7 @@ async def create_post(
             detail=f"{e}خطا در ایجاد پست: "
         )
 
+
 @router.get(
     "/posts/{post_id}",
     response_model=RelationalPostPublic,
@@ -96,12 +83,6 @@ async def get_post(
         *,
         session: AsyncSession = Depends(get_session),
         post_id: UUID,
-        _user: dict = Depends(
-            require_roles(
-                AdminRole.SUPER_ADMIN.value,
-                AdminRole.GENERAL_ADMIN.value,
-            )
-        ),
 ):
 
     # Attempt to retrieve the author record from the database
@@ -110,10 +91,6 @@ async def get_post(
     # If the author is found, process the data and add necessary links
     if not post:
         raise HTTPException(status_code=404, detail="پست پیدا نشد")
-
-    if _user["role"] == AdminRole.GENERAL_ADMIN.value and post.admin_id != _user["id"]:
-        raise HTTPException(status_code=403,
-                            detail="شما دسترسی لازم برای مشاهده اطلاعات پست های  دیگر را ندارید")
 
     return post
 
@@ -192,6 +169,7 @@ async def delete_post(
     # Return the author information after deletion.
     return post
 
+
 @router.get(
     "/posts/search/",
     response_model=list[RelationalPostPublic],
@@ -204,11 +182,6 @@ async def search_posts(
         operator: LogicalOperator,
         offset: int = Query(default=0, ge=0),
         limit: int = Query(default=100, le=100),
-        _user: dict = Depends(
-            require_roles(
-                AdminRole.SUPER_ADMIN.value,
-            )
-        ),
 ):
 
     conditions = []  # Initialize the list of filter conditions

@@ -51,13 +51,6 @@ async def create_customer(
         *,
         session: AsyncSession = Depends(get_session),
         customer_create: CustomerCreate,
-        _user: dict = Depends(
-            require_roles(
-                AdminRole.SUPER_ADMIN.value,
-                AdminRole.GENERAL_ADMIN.value,
-                CustomerRole.CUSTOMER.value,
-            )
-        ),
 ):
     # Securely hash password before persistence
     hashed_password = get_password_hash(customer_create.password)
