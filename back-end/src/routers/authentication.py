@@ -1,4 +1,5 @@
 from datetime import timedelta
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request, Response, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -100,7 +101,7 @@ async def login(
 
 
     # Return a success message after login
-    return {"msg": "ورود موفقیت آمیز بود", "role": user["role"]}
+    return {"msg": "ورود موفقیت آمیز بود", "id": str(user["user"].id), "role": user["role"]}
 
 
 @router.post("/logout/")
