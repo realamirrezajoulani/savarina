@@ -51,7 +51,7 @@ async def refresh_token(request: Request,
         max_age=REFRESH_TOKEN_EXPIRE_MINUTES * 60,
     )
 
-    return {"message": "Access token refreshed"}
+    return {"msg": "Access token refreshed"}
 
 
 @router.post("/login/")
@@ -70,7 +70,7 @@ async def login(
     user = await authenticate_user(credentials, session)
 
     # Create a payload containing the user's role and ID for the token
-    token_payload = {"role": credentials.role.value, "id": str(user.id)}
+    token_payload = {"role": user["role"], "id": str(user["user"].id)}
 
     # Generate the access token with a short expiry time
     access_token = create_access_token(data=token_payload)
@@ -100,7 +100,7 @@ async def login(
 
 
     # Return a success message after login
-    return {"پیام": "ورود موفقیت آمیز بود"}
+    return {"msg": "ورود موفقیت آمیز بود", "role": user["role"]}
 
 
 @router.post("/logout/")
@@ -109,4 +109,4 @@ async def logout(request: Request, response: Response) -> dict[str, str]:
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
     response.delete_cookie("csrf_token")
-    return {"پیام": "خروج موفقیت آمیز بود"}
+    return {"msg": "خروج موفقیت آمیز بود"}

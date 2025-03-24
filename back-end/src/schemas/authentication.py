@@ -19,10 +19,6 @@ class LoginRequest(SQLModel):
         ...
     )
 
-    role: AdminRole | CustomerRole = Field(
-        ...
-    )
-
     @field_validator("password")
     def validate_password(cls, value: str) -> str | HTTPException:
         # Validate the password using the external validation function

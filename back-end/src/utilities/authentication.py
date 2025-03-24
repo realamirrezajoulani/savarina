@@ -102,36 +102,29 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 async def authenticate_user(credentials: LoginRequest, session: AsyncSession):
-    username = credentials.username
-    password = credentials.password
-    role = credentials.role
+    username, password = credentials.username, credentials.password
 
-    if role in (AdminRole.GENERAL_ADMIN.value, AdminRole.SUPER_ADMIN.value):
-        query = select(Admin).where(Admin.username == username).where(Admin.role == role)
+    user_models = [
+        (Admin, {"username": username, "role": AdminRole.SUPER_ADMIN.value}),
+        (Admin, {"username": username, "role": AdminRole.GENERAL_ADMIN.value}),
+        (Customer, {"username": username})
+    ]
+
+    for model, filters in user_models:
+        query = select(model)
+
+        for field, value in filters.items():
+            query = query.where(getattr(model, field) == value)
         result = await session.execute(query)
-        admin_user = result.scalars().one_or_none()
+        user_instance = result.scalars().one_or_none()
 
-        if not admin_user or not verify_password(password, admin_user.password):
-            raise HTTPException(
-                status_code=401,
-                detail="نام کاربری یا گذرواژه پیدا نشد",
-            )
-        return admin_user
+        if user_instance and verify_password(password, user_instance.password):
 
-    elif role == CustomerRole.CUSTOMER.value:
-        query = select(Customer).where(Customer.username == username)
-        result = await session.execute(query)
-        customer_user = result.scalars().one_or_none()
+            role = filters.get("role", CustomerRole.CUSTOMER.value)
+            return {"user": user_instance, "role": role}
 
-        if not customer_user or not verify_password(password, customer_user.password):
-            raise HTTPException(
-                status_code=401,
-                detail="نام کاربری یا گذرواژه پیدا نشد",
-            )
-        return customer_user
+    raise HTTPException(
+        status_code=401,
+        detail="نام کاربری یا گذرواژه پیدا نشد"
+    )
 
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail="نقش نادرست است"
-        )
