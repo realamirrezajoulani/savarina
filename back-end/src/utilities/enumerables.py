@@ -9,14 +9,6 @@ class Gender(str, Enum):
 
 
 class Brand(str, Enum):
-    IKCO = "ایران‌خودرو"
-    SAIPA = "سایپا"
-    PARS_KHODRO = "پارس‌خودرو"
-    KERMAN_MOTOR = "کرمان موتور"
-    BAHMAN = "بهمن موتور"
-    MORATTAB = "مرتب"
-    RONIZ = "رونیز"
-    ZAMYAD = "زامیاد"
     TOYOTA = "تویوتا"
     FORD = "فورد"
     HONDA = "هوندا"
