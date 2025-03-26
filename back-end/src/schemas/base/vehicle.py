@@ -2,7 +2,7 @@ from jdatetime import datetime as jdatetime
 from sqlalchemy import Column, BIGINT
 from sqlmodel import SQLModel, Field
 
-from utilities.enumerables import Brand, CarColor, CarStatus, BranchLocations
+from utilities.enumerables import Brand, CarStatus, BranchLocations
 
 
 class VehicleBase(SQLModel):
@@ -37,8 +37,9 @@ class VehicleBase(SQLModel):
         le=jdatetime.utcnow().year,
     )
 
-    color: CarColor = Field(
-        ...
+    color: str = Field(
+        min_length=2,
+        max_length=30,
     )
 
     mileage: int = Field(

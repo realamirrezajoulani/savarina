@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlmodel import Field, SQLModel
 
 from schemas.base.vehicle import VehicleBase
-from utilities.enumerables import Brand, CarColor, CarStatus, BranchLocations
+from utilities.enumerables import Brand, CarStatus, BranchLocations
 
 
 class VehicleCreate(VehicleBase):
@@ -43,8 +43,10 @@ class VehicleUpdate(SQLModel):
         le=jdatetime.utcnow().year,
     )
 
-    color: CarColor | None = Field(
+    color: str | None = Field(
         default=None,
+        min_length=2,
+        max_length=30,
     )
 
     mileage: int | None = Field(
