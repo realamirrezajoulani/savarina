@@ -32,7 +32,7 @@ async def refresh_token(request: Request,
         key="access_token",
         value=new_access_token,
         httponly=False,
-        secure=False,
+        secure=True,
         samesite=None,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
@@ -46,7 +46,7 @@ async def refresh_token(request: Request,
         key="refresh_token",
         value=new_refresh_token,
         httponly=False,
-        secure=False,
+        secure=True,
         samesite=None,
         max_age=REFRESH_TOKEN_EXPIRE_MINUTES * 60,
     )
@@ -80,7 +80,7 @@ async def login(
         key="access_token",
         value=access_token,
         httponly=False,  # Prevents JavaScript access
-        secure=False,  # Ensures the cookie is only sent over HTTPS
+        secure=True,  # Ensures the cookie is only sent over HTTPS
         samesite=None,  # Prevents CSRF by restricting cookie sending to same-site requests
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Token expiration duration in seconds
     )
@@ -93,7 +93,7 @@ async def login(
         key="refresh_token",
         value=refresh_access_token,
         httponly=False,
-        secure=False,
+        secure=True,
         samesite=None,
         max_age=REFRESH_TOKEN_EXPIRE_MINUTES * 60,
     )
