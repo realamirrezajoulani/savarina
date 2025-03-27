@@ -39,14 +39,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-    # response.headers["X-Content-Type-Options"] = "nosniff"
-    # response.headers["Expect-CT"] = "max-age=86400, enforce"
-    # response.headers["X-XSS-Protection"] = "1; mode=block"
-    # response.headers["X-Frame-Options"] = "DENY"
-    return response
+# @app.middleware("http")
+# async def add_security_headers(request: Request, call_next):
+#     response = await call_next(request)
+#     # response.headers["X-Content-Type-Options"] = "nosniff"
+#     # response.headers["Expect-CT"] = "max-age=86400, enforce"
+#     # response.headers["X-XSS-Protection"] = "1; mode=block"
+#     # response.headers["X-Frame-Options"] = "DENY"
+#     return response
 
 app.include_router(authentication.router, tags=["authentication"])
 app.include_router(customer.router, tags=["customers"])
