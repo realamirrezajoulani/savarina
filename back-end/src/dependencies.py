@@ -11,33 +11,31 @@ from utilities.authentication import decode_access_token
 def require_roles(*required_roles: str) -> Callable:
     async def dependency(_user: dict = Depends(get_current_user)) -> dict:
         if _user["role"] not in required_roles:
-            allowed_roles = ", ".join(required_roles)
             raise HTTPException(
                 status_code=403,
-                detail=f"دسترسی به یکی از نقش های زیر نیاز دارد: {allowed_roles}"
+                detail=f"شما دسترسی لازم را ندارید"
             )
         return _user
 
     return dependency
 
 def get_current_user(request: Request) -> dict[str, Any]:
-
-    # Retrieve the access token from cookies
-    token = request.cookies.get("access_token")
-    if not token:
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
         raise HTTPException(
             status_code=401,
             detail="احراز هویت نشده است"
         )
 
-    # Remove 'Bearer ' prefix if present
-    token = token.removeprefix("Bearer ")
+    token = auth_header.removeprefix("Bearer ").strip()
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="توکن ارسال شده معتبر نیست"
+        )
 
     try:
-        # Decode the token to extract user information
         payload = decode_access_token(token)
-
-        # Ensure the role exists in the payload
         role = payload.get("role")
         if not role:
             raise HTTPException(

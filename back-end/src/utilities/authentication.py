@@ -14,7 +14,7 @@ from schemas.authentication import LoginRequest
 from utilities.enumerables import AdminRole, CustomerRole
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 15  # Access token lifetime (15 minutes)
-REFRESH_TOKEN_EXPIRE_MINUTES = 7 * 24 * 60  # Refresh token lifetime (7 days)
+REFRESH_TOKEN_EXPIRE_MINUTES = 10080  # Refresh token lifetime (7 days)
 
 SECRET_KEY = os.getenv("CRMS_SECURITY_KEY")
 
@@ -49,12 +49,12 @@ def decode_access_token(token: str) -> dict[str, Any]:
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=401,
-            detail="Token has expired"
+            detail="توکن منقضی شده است"
         )
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=401,
-            detail="Invalid authentication token"
+            detail="توکن نامعتبر است"
         )
     except Exception as e:
         raise HTTPException(
