@@ -10,7 +10,7 @@ from dependencies import get_session, require_roles
 from models.relational_models import Admin
 from schemas.admin import AdminCreate, AdminUpdate
 from schemas.relational_schemas import RelationalAdminPublic
-from utilities.authentication import get_password_hash
+from utilities.authentication import get_password_hash, oauth2_scheme
 from utilities.enumerables import LogicalOperator, AdminRole, AdminStatus
 
 router = APIRouter()
@@ -30,6 +30,7 @@ async def get_admins(
             AdminRole.GENERAL_ADMIN.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == AdminRole.GENERAL_ADMIN.value:
         admin = await session.get(Admin, _user["id"])
@@ -57,6 +58,7 @@ async def create_admin(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == AdminRole.GENERAL_ADMIN.value:
         final_role = AdminRole.GENERAL_ADMIN.value
@@ -122,6 +124,7 @@ async def get_admin(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     """
     Retrieves the detailed information of a specific author, including their associated posts.
@@ -161,6 +164,7 @@ async def patch_admin(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
 
     if _user["role"] == AdminRole.GENERAL_ADMIN.value and admin_id != UUID(_user["id"]):
@@ -207,6 +211,7 @@ async def delete_admin(
             AdminRole.GENERAL_ADMIN.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == AdminRole.GENERAL_ADMIN.value and admin_id != UUID(_user["id"]):
         raise HTTPException(status_code=403,
@@ -250,6 +255,7 @@ async def search_admins(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
 
     conditions = []  # Initialize the list of filter conditions

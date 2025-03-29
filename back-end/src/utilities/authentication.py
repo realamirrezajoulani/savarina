@@ -23,7 +23,7 @@ ALGORITHM = "HS512"
 # Password hashing context using PBKDF2-HMAC-SHA512
 pwd_context = CryptContext(schemes=["pbkdf2_sha512"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/")
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
