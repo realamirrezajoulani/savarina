@@ -9,7 +9,7 @@ from dependencies import get_session, require_roles
 from models.relational_models import Customer
 from schemas.customer import CustomerCreate, CustomerUpdate
 from schemas.relational_schemas import RelationalCustomerPublic
-from utilities.authentication import get_password_hash
+from utilities.authentication import get_password_hash, oauth2_scheme
 from utilities.enumerables import LogicalOperator, Gender, AdminRole, CustomerRole
 
 router = APIRouter()
@@ -30,6 +30,7 @@ async def get_customers(
             CustomerRole.CUSTOMER.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == CustomerRole.CUSTOMER.value:
         customer = await session.get(Customer, _user["id"])
@@ -110,6 +111,7 @@ async def get_customer(
                 CustomerRole.CUSTOMER.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     """
     Retrieves the detailed information of a specific author, including their associated posts.
@@ -150,6 +152,7 @@ async def patch_customer(
                 CustomerRole.CUSTOMER.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     # Check if the user is trying to delete themselves or is an admin/authorized full role.
     if _user["role"] == CustomerRole.CUSTOMER.value and customer_id != UUID(_user["id"]):
@@ -198,6 +201,7 @@ async def delete_customer(
             CustomerRole.CUSTOMER.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     # Check if the user is trying to delete themselves or is an admin/authorized full role.
     if _user["role"] == CustomerRole.CUSTOMER.value and customer_id != UUID(_user["id"]):
@@ -211,13 +215,14 @@ async def delete_customer(
     if not customer:
         raise HTTPException(status_code=404, detail="مشتری پیدا نشد")
 
+    customer_data = RelationalCustomerPublic.model_validate(customer)
 
     # Proceed to delete the author if the above conditions are met.
     await session.delete(customer)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return customer
+    return customer_data
 
 @router.get(
     "/customers/search/",
@@ -239,6 +244,7 @@ async def search_customers(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
 
     conditions = []  # Initialize the list of filter conditions

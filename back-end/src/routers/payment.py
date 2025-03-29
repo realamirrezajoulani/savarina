@@ -9,6 +9,7 @@ from dependencies import get_session, require_roles
 from models.relational_models import Payment
 from schemas.payment import PaymentCreate, PaymentUpdate
 from schemas.relational_schemas import RelationalPaymentPublic
+from utilities.authentication import oauth2_scheme
 from utilities.enumerables import LogicalOperator, PaymentMethod, PaymentStatus, AdminRole
 
 router = APIRouter()
@@ -28,6 +29,7 @@ async def get_payments(
             AdminRole.GENERAL_ADMIN.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
 
     payments_query = select(Payment).offset(offset).limit(limit)
@@ -53,6 +55,7 @@ async def create_payment(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     try:
 
@@ -101,6 +104,7 @@ async def get_payment(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
 
     # Attempt to retrieve the author record from the database
@@ -129,6 +133,7 @@ async def patch_payment(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     # Retrieve the author record from the database using the provided ID.
     payment = await session.get(Payment, payment_id)
@@ -163,6 +168,7 @@ async def delete_payment(
             AdminRole.GENERAL_ADMIN.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     # Fetch the author record from the database using the provided ID.
     payment = await session.get(Payment, payment_id)
@@ -171,12 +177,14 @@ async def delete_payment(
     if not payment:
         raise HTTPException(status_code=404, detail="پرداخت پیدا نشد")
 
+    payment_data = RelationalPaymentPublic.model_validate(payment)
+
     # Proceed to delete the author if the above conditions are met.
     await session.delete(payment)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return payment
+    return payment_data
 
 @router.get(
     "/payments/search/",
@@ -198,6 +206,7 @@ async def search_payments(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
 
     conditions = []  # Initialize the list of filter conditions

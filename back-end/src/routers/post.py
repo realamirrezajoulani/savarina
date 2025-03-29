@@ -8,6 +8,7 @@ from dependencies import get_session, require_roles
 from models.relational_models import Post
 from schemas.post import PostCreate, PostUpdate
 from schemas.relational_schemas import RelationalPostPublic
+from utilities.authentication import oauth2_scheme
 from utilities.enumerables import LogicalOperator, AdminRole
 
 router = APIRouter()
@@ -45,6 +46,7 @@ async def create_post(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == AdminRole.GENERAL_ADMIN.value:
         final_admin_id = UUID(_user["id"])
@@ -111,6 +113,7 @@ async def patch_post(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     # Retrieve the author record from the database using the provided ID.
     post = await session.get(Post, post_id)
@@ -149,6 +152,7 @@ async def delete_post(
             AdminRole.GENERAL_ADMIN.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     # Fetch the author record from the database using the provided ID.
     post = await session.get(Post, post_id)
@@ -161,13 +165,14 @@ async def delete_post(
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای حذف پست های  دیگر را ندارید")
 
+    post_data = RelationalPostPublic.model_validate(post)
 
     # Proceed to delete the author if the above conditions are met.
     await session.delete(post)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return post
+    return post_data
 
 
 @router.get(

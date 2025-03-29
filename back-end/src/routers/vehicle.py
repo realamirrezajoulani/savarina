@@ -9,6 +9,7 @@ from dependencies import get_session, require_roles
 from models.relational_models import Vehicle
 from schemas.relational_schemas import RelationalVehiclePublic
 from schemas.vehicle import VehicleCreate, VehicleUpdate
+from utilities.authentication import oauth2_scheme
 from utilities.enumerables import LogicalOperator, CarStatus, Brand, AdminRole, CustomerRole
 
 router = APIRouter()
@@ -47,6 +48,7 @@ async def create_vehicle(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     try:
 
@@ -122,6 +124,7 @@ async def patch_vehicle(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     # Retrieve the author record from the database using the provided ID.
     vehicle = await session.get(Vehicle, vehicle_id)
@@ -156,6 +159,7 @@ async def delete_vehicle(
             AdminRole.GENERAL_ADMIN.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     # Fetch the author record from the database using the provided ID.
     vehicle = await session.get(Vehicle, vehicle_id)
@@ -164,13 +168,14 @@ async def delete_vehicle(
     if not vehicle:
         raise HTTPException(status_code=404, detail="وسیله نقلیه پیدا نشد")
 
+    vehicle_data = RelationalVehiclePublic.model_validate(vehicle)
 
     # Proceed to delete the author if the above conditions are met.
     await session.delete(vehicle)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return vehicle
+    return vehicle_data
 
 @router.get(
     "/vehicles/search/",

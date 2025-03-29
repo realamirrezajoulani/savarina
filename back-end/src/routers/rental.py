@@ -8,6 +8,7 @@ from dependencies import get_session, require_roles
 from models.relational_models import Rental
 from schemas.relational_schemas import RelationalRentalPublic
 from schemas.rental import RentalCreate, RentalUpdate
+from utilities.authentication import oauth2_scheme
 from utilities.enumerables import LogicalOperator, AdminRole, CustomerRole
 
 router = APIRouter()
@@ -28,6 +29,7 @@ async def get_rentals(
             CustomerRole.CUSTOMER.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == CustomerRole.CUSTOMER.value:
         rental_query = select(Rental).where(Rental.customer_id == _user["id"])
@@ -61,6 +63,7 @@ async def create_rental(
                 CustomerRole.CUSTOMER.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == CustomerRole.CUSTOMER.value:
         final_customer_id = UUID(_user["id"])
@@ -110,6 +113,7 @@ async def get_rental(
                 CustomerRole.CUSTOMER.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     # Attempt to retrieve the author record from the database
     rental = await session.get(Rental, rental_id)
@@ -142,7 +146,7 @@ async def patch_rental(
                 CustomerRole.CUSTOMER.value,
             )
         ),
-
+        _token: str = Depends(oauth2_scheme),
 ):
     # Retrieve the author record from the database using the provided ID.
     rental = await session.get(Rental, rental_id)
@@ -182,6 +186,7 @@ async def delete_rental(
             CustomerRole.CUSTOMER.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     # Fetch the author record from the database using the provided ID.
     rental = await session.get(Rental, rental_id)
@@ -194,13 +199,12 @@ async def delete_rental(
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای حذف کرایه های  دیگر را ندارید")
 
+    rental_data = RelationalRentalPublic.model_validate(rental)
 
-    # Proceed to delete the author if the above conditions are met.
     await session.delete(rental)
-    await session.commit()  # Commit the transaction to apply the changes
+    await session.commit()
 
-    # Return the author information after deletion.
-    return rental
+    return rental_data
 
 @router.get(
     "/rentals/search/",
@@ -222,14 +226,19 @@ async def search_rentals(
             require_roles(
                 AdminRole.SUPER_ADMIN.value,
                 AdminRole.GENERAL_ADMIN.value,
+                CustomerRole.CUSTOMER.value
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
 
     conditions = []  # Initialize the list of filter conditions
 
     # Start building the query to fetch authors with pagination.
     query = select(Rental).offset(offset).limit(limit)
+
+    if _user["role"] == CustomerRole.CUSTOMER.value:
+        query = query.where(Rental.customer_id == _user["id"])
 
     # Add filters to the conditions list if the corresponding arguments are provided.
     if rental_start_date:

@@ -4,7 +4,7 @@ from typing import Any
 
 import jwt
 from fastapi import HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -23,7 +23,7 @@ ALGORITHM = "HS512"
 # Password hashing context using PBKDF2-HMAC-SHA512
 pwd_context = CryptContext(schemes=["pbkdf2_sha512"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/", )
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:

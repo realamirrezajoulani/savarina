@@ -8,6 +8,7 @@ from dependencies import get_session, require_roles
 from models.relational_models import Comment
 from schemas.comment import CommentCreate, CommentUpdate
 from schemas.relational_schemas import RelationalCommentPublic
+from utilities.authentication import oauth2_scheme
 from utilities.enumerables import LogicalOperator, CommentSubject, CommentStatus, AdminRole, CustomerRole
 
 router = APIRouter()
@@ -45,6 +46,7 @@ async def create_comment(
                 CustomerRole.CUSTOMER.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == CustomerRole.CUSTOMER.value:
         final_customer_id = UUID(_user["id"])
@@ -115,7 +117,7 @@ async def patch_comment(
                 CustomerRole.CUSTOMER.value,
             )
         ),
-
+        _token: str = Depends(oauth2_scheme),
 ):
     # Retrieve the author record from the database using the provided ID.
     comment = await session.get(Comment, comment_id)
@@ -155,6 +157,7 @@ async def delete_comment(
             CustomerRole.CUSTOMER.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     # Fetch the author record from the database using the provided ID.
     comment = await session.get(Comment, comment_id)
@@ -167,13 +170,14 @@ async def delete_comment(
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای ویرایش اطلاعات نظر های  دیگر را ندارید")
 
+    comment_data = comment.model_validate(comment)
 
     # Proceed to delete the author if the above conditions are met.
     await session.delete(comment)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return comment
+    return comment_data
 
 @router.get(
     "/comments/search/",

@@ -5,9 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, and_, or_, not_
 
 from dependencies import get_session, require_roles
-from models.relational_models import Invoice
+from models.relational_models import Invoice, Rental
 from schemas.invoice import InvoiceUpdate, InvoiceCreate
 from schemas.relational_schemas import RelationalInvoicePublic
+from utilities.authentication import oauth2_scheme
 from utilities.enumerables import LogicalOperator, InvoiceStatus, AdminRole, CustomerRole
 
 router = APIRouter()
@@ -25,9 +26,20 @@ async def get_invoices(
         require_roles(
             AdminRole.SUPER_ADMIN.value,
             AdminRole.GENERAL_ADMIN.value,
+            CustomerRole.CUSTOMER.value
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
+    if _user["role"] == CustomerRole.CUSTOMER.value:
+        invoice_query = (
+            select(Invoice)
+            .join(Rental)
+            .where(Rental.customer_id == _user["id"])
+        )
+        result = await session.execute(invoice_query)
+        invoices_list = result.scalars().unique().all()
+        return invoices_list
 
     invoices_query = select(Invoice).offset(offset).limit(limit)
     invoices = await session.execute(invoices_query)
@@ -53,6 +65,7 @@ async def create_invoice(
                 CustomerRole.CUSTOMER.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     try:
 
@@ -93,16 +106,30 @@ async def get_invoice(
             require_roles(
                 AdminRole.SUPER_ADMIN.value,
                 AdminRole.GENERAL_ADMIN.value,
+                CustomerRole.CUSTOMER.value
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
-
     # Attempt to retrieve the author record from the database
     invoice = await session.get(Invoice, invoice_id)
 
     # If the author is found, process the data and add necessary links
     if not invoice:
         raise HTTPException(status_code=404, detail="فاکتور پیدا نشد")
+
+    if _user["role"] == CustomerRole.CUSTOMER.value:
+        invoice_query = (
+            select(Invoice)
+            .where(Invoice.id == invoice.id)
+            .join(Rental)
+            .where(Rental.customer_id == _user["id"])
+        )
+        result = await session.execute(invoice_query)
+
+        if not result.scalars().first():
+            raise HTTPException(status_code=403,
+                                detail="شما دسترسی لازم برای مشاهده اطلاعات فاکتور های  دیگر را ندارید")
 
     return invoice
 
@@ -121,13 +148,28 @@ async def patch_invoice(
             require_roles(
                 AdminRole.SUPER_ADMIN.value,
                 AdminRole.GENERAL_ADMIN.value,
+                CustomerRole.CUSTOMER.value
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     # Retrieve the author record from the database using the provided ID.
     invoice = await session.get(Invoice, invoice_id)
     if not invoice:
         raise HTTPException(status_code=404, detail="فاکتور پیدا نشد")
+
+    if _user["role"] == CustomerRole.CUSTOMER.value:
+        invoice_query = (
+            select(Invoice)
+            .where(Invoice.id == invoice.id)
+            .join(Rental)
+            .where(Rental.customer_id == _user["id"])
+        )
+        result = await session.execute(invoice_query)
+
+        if not result.scalars().first():
+            raise HTTPException(status_code=403,
+                                detail="شما دسترسی لازم برای ویرایش اطلاعات فاکتور های  دیگر را ندارید")
 
     # Prepare the update data, excluding unset fields.
     invoice_data = invoice_update.model_dump(exclude_unset=True)
@@ -155,8 +197,10 @@ async def delete_invoice(
         require_roles(
             AdminRole.SUPER_ADMIN.value,
             AdminRole.GENERAL_ADMIN.value,
+            CustomerRole.CUSTOMER.value
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     # Fetch the author record from the database using the provided ID.
     invoice = await session.get(Invoice, invoice_id)
@@ -165,12 +209,27 @@ async def delete_invoice(
     if not invoice:
         raise HTTPException(status_code=404, detail="فاکتور پیدا نشد")
 
+    if _user["role"] == CustomerRole.CUSTOMER.value:
+        invoice_query = (
+            select(Invoice)
+            .where(Invoice.id == invoice.id)
+            .join(Rental)
+            .where(Rental.customer_id == _user["id"])
+        )
+        result = await session.execute(invoice_query)
+
+        if not result.scalars().first():
+            raise HTTPException(status_code=403,
+                                detail="شما دسترسی لازم برای حذف اطلاعات فاکتور های  دیگر را ندارید")
+
+    rental_data = RelationalInvoicePublic.model_validate(invoice)
+
     # Proceed to delete the author if the above conditions are met.
     await session.delete(invoice)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return invoice
+    return rental_data
 
 @router.get(
     "/invoices/search/",
@@ -191,14 +250,19 @@ async def search_invoices(
             require_roles(
                 AdminRole.SUPER_ADMIN.value,
                 AdminRole.GENERAL_ADMIN.value,
+                CustomerRole.CUSTOMER.value
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
 
     conditions = []  # Initialize the list of filter conditions
 
     # Start building the query to fetch authors with pagination.
     query = select(Invoice).offset(offset).limit(limit)
+
+    if _user["role"] == CustomerRole.CUSTOMER.value:
+        query = query.join(Rental).where(Rental.customer_id == _user["id"])
 
     # Add filters to the conditions list if the corresponding arguments are provided.
     if total_amount:
@@ -228,9 +292,8 @@ async def search_invoices(
 
     # Execute the query asynchronously.
     invoice_db = await session.execute(query)
-    invoices = invoice_db.scalars().all()  # Retrieve all authors that match the conditions
+    invoices = invoice_db.scalars().all()
 
-    # If no authors are found, raise a "not found" error.
     if not invoices:
         raise HTTPException(status_code=404, detail="فاکتور پیدا نشد")
 

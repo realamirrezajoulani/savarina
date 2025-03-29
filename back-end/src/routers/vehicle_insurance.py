@@ -9,6 +9,7 @@ from dependencies import get_session, require_roles
 from models.relational_models import VehicleInsurance
 from schemas.relational_schemas import RelationalVehicleInsurancePublic
 from schemas.vehicle_insurance import VehicleInsuranceCreate, VehicleInsuranceUpdate
+from utilities.authentication import oauth2_scheme
 from utilities.enumerables import LogicalOperator, InsuranceType, AdminRole
 
 router = APIRouter()
@@ -28,6 +29,7 @@ async def get_vehicle_insurances(
             AdminRole.GENERAL_ADMIN.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
 
     vehicle_insurances_query = select(VehicleInsurance).offset(offset).limit(limit)
@@ -53,6 +55,7 @@ async def create_vehicle_insurance(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+    _token: str = Depends(oauth2_scheme),
 ):
     try:
         db_vehicle_insurance = VehicleInsurance(
@@ -101,6 +104,7 @@ async def get_vehicle_insurance(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
 
     # Attempt to retrieve the author record from the database
@@ -129,6 +133,7 @@ async def patch_vehicle_insurance(
                 AdminRole.GENERAL_ADMIN.value,
             )
         ),
+        _token: str = Depends(oauth2_scheme),
 ):
     # Retrieve the author record from the database using the provided ID.
     vehicle_insurance = await session.get(VehicleInsurance, vehicle_insurance_id)
@@ -163,6 +168,7 @@ async def delete_vehicle_insurance(
             AdminRole.GENERAL_ADMIN.value,
         )
     ),
+    _token: str = Depends(oauth2_scheme),
 ):
     # Fetch the author record from the database using the provided ID.
     vehicle_insurance = await session.get(VehicleInsurance, vehicle_insurance_id)
@@ -171,13 +177,14 @@ async def delete_vehicle_insurance(
     if not vehicle_insurance:
         raise HTTPException(status_code=404, detail="بیمه وسیله نقلیه پیدا نشد")
 
+    vehicle_insurance_data = RelationalVehicleInsurancePublic.model_validate(vehicle_insurance)
 
     # Proceed to delete the author if the above conditions are met.
     await session.delete(vehicle_insurance)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return vehicle_insurance
+    return vehicle_insurance_data
 
 @router.get(
     "/vehicle_insurances/search/",

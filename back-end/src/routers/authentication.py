@@ -1,6 +1,8 @@
 from datetime import timedelta
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from dependencies import get_session
@@ -47,8 +49,10 @@ async def refresh_token(request: Request) -> dict[str, str]:
 async def login(
     *,
     session: AsyncSession = Depends(get_session),
-    credentials: LoginRequest,
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> dict[str, str]:
+    credentials = LoginRequest(username=form_data.username, password=form_data.password)
+
     user = await authenticate_user(credentials, session)
 
     token_payload = {"role": user["role"], "id": str(user["user"].id)}

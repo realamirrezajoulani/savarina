@@ -224,13 +224,14 @@ async def delete_admin(
     if not admin:
         raise HTTPException(status_code=404, detail="ادمین پیدا نشد")
 
+    admin_data = RelationalAdminPublic.model_validate(admin)
 
     # Proceed to delete the author if the above conditions are met.
     await session.delete(admin)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return admin
+    return admin_data
 
 @router.get(
     "/admins/search/",
