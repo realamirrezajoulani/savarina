@@ -5,11 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, and_, or_, not_
 
 from dependencies import get_session, require_roles
-from models.relational_models import Rental
+from models.relational_models import Rental, Vehicle
 from schemas.relational_schemas import RelationalRentalPublic
 from schemas.rental import RentalCreate, RentalUpdate
 from utilities.authentication import oauth2_scheme
-from utilities.enumerables import LogicalOperator, AdminRole, CustomerRole
+from utilities.enumerables import LogicalOperator, AdminRole, CustomerRole, CarStatus
 
 router = APIRouter()
 
@@ -80,6 +80,10 @@ async def create_rental(
             vehicle_id=rental_create.vehicle_id,
             invoice_id=rental_create.invoice_id,
         )
+
+        # Update vehicle status to rented
+        vehicle = await session.get(Vehicle, rental_create.vehicle_id)
+        vehicle.status = CarStatus.RENTED.value
 
 
         # Persist to database with explicit transaction control
@@ -198,6 +202,11 @@ async def delete_rental(
     if _user["role"] == CustomerRole.CUSTOMER.value and rental.customer_id != _user["id"]:
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای حذف کرایه های  دیگر را ندارید")
+
+    # Update vehicle status after delete some rental
+    vehicle = await session.get(Vehicle, rental.vehicle_id)
+    vehicle.status = CarStatus.AVAILABLE.value
+
 
     await session.delete(rental)
     await session.commit()
