@@ -165,14 +165,12 @@ async def delete_post(
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای حذف پست های  دیگر را ندارید")
 
-    post_data = RelationalPostPublic.model_validate(post)
-
     # Proceed to delete the author if the above conditions are met.
     await session.delete(post)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return post_data
+    return {"msg": "پست با موفقیت حذف شد"}
 
 
 @router.get(

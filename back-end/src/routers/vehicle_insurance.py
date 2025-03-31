@@ -177,14 +177,12 @@ async def delete_vehicle_insurance(
     if not vehicle_insurance:
         raise HTTPException(status_code=404, detail="بیمه وسیله نقلیه پیدا نشد")
 
-    vehicle_insurance_data = RelationalVehicleInsurancePublic.model_validate(vehicle_insurance)
-
     # Proceed to delete the author if the above conditions are met.
     await session.delete(vehicle_insurance)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return vehicle_insurance_data
+    return {"msg": "بیمه وسیله نقلیه با موفقیت حذف شد"}
 
 @router.get(
     "/vehicle_insurances/search/",

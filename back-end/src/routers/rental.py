@@ -199,12 +199,10 @@ async def delete_rental(
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای حذف کرایه های  دیگر را ندارید")
 
-    rental_data = RelationalRentalPublic.model_validate(rental)
-
     await session.delete(rental)
     await session.commit()
 
-    return rental_data
+    return {"msg": "اجاره با موفقیت حذف شد"}
 
 @router.get(
     "/rentals/search/",

@@ -177,14 +177,12 @@ async def delete_payment(
     if not payment:
         raise HTTPException(status_code=404, detail="پرداخت پیدا نشد")
 
-    payment_data = RelationalPaymentPublic.model_validate(payment)
-
     # Proceed to delete the author if the above conditions are met.
     await session.delete(payment)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return payment_data
+    return {"msg": "پرداخت با موفقیت حذف شد"}
 
 @router.get(
     "/payments/search/",

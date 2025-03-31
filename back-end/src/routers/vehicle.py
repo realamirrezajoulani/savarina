@@ -168,14 +168,12 @@ async def delete_vehicle(
     if not vehicle:
         raise HTTPException(status_code=404, detail="وسیله نقلیه پیدا نشد")
 
-    vehicle_data = RelationalVehiclePublic.model_validate(vehicle)
-
     # Proceed to delete the author if the above conditions are met.
     await session.delete(vehicle)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return vehicle_data
+    return {"msg": "وسیله نقلیه با موفقیت حذف شد"}
 
 @router.get(
     "/vehicles/search/",

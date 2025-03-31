@@ -170,14 +170,12 @@ async def delete_comment(
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای ویرایش اطلاعات نظر های  دیگر را ندارید")
 
-    comment_data = comment.model_validate(comment)
-
     # Proceed to delete the author if the above conditions are met.
     await session.delete(comment)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return comment_data
+    return {"msg": "کامنت با موفقیت حذف شد"}
 
 @router.get(
     "/comments/search/",

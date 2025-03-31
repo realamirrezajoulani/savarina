@@ -215,14 +215,12 @@ async def delete_customer(
     if not customer:
         raise HTTPException(status_code=404, detail="مشتری پیدا نشد")
 
-    customer_data = RelationalCustomerPublic.model_validate(customer)
-
     # Proceed to delete the author if the above conditions are met.
     await session.delete(customer)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return customer_data
+    return {"msg": "مشتری با موفقیت حذف شد"}
 
 @router.get(
     "/customers/search/",

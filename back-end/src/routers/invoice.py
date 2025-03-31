@@ -222,14 +222,12 @@ async def delete_invoice(
             raise HTTPException(status_code=403,
                                 detail="شما دسترسی لازم برای حذف اطلاعات فاکتور های  دیگر را ندارید")
 
-    rental_data = RelationalInvoicePublic.model_validate(invoice)
-
     # Proceed to delete the author if the above conditions are met.
     await session.delete(invoice)
     await session.commit()  # Commit the transaction to apply the changes
 
     # Return the author information after deletion.
-    return rental_data
+    return {"msg": "فاکتور با موفقیت حذف شد"}
 
 @router.get(
     "/invoices/search/",
