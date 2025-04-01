@@ -45,7 +45,7 @@ async def create_post(
         ),
         _token: str = Depends(oauth2_scheme),
 ):
-    final_admin_id = uuid.UUID(_user["id"]) if _user["role"] == AdminRole.GENERAL_ADMIN.value else final_admin_id = post_create.admin_id
+    final_admin_id = uuid.UUID(_user["id"]) if _user["role"] == AdminRole.GENERAL_ADMIN.value else post_create.admin_id
 
     try:
         db_post = Post(

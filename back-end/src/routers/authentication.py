@@ -12,6 +12,7 @@ from utilities.authentication import authenticate_user, create_access_token, dec
 
 router = APIRouter()
 
+
 @router.post("/refresh-token/")
 async def refresh_token(request: Request) -> dict[str, str]:
     auth_header = request.headers.get("Authorization-Refresh")
