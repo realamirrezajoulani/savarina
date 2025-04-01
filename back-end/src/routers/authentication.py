@@ -74,8 +74,3 @@ async def login(
         "access_token": access_token,
         "refresh_token": refresh_access_token
     }
-
-
-# @router.post("/logout/")
-# async def logout(request: Request) -> dict[str, str]:
-#     return {"msg": "خروج موفقیت‌آمیز بود"}

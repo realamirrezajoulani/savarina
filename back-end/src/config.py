@@ -32,7 +32,7 @@ origins = [
     "https://localhost:3000",
     "http://localhost:5173",
     "https://localhost:5173",
-    "https://savarina.vercel.app/",
+    "https://savarina.vercel.app",
 ]
 
 app.add_middleware(

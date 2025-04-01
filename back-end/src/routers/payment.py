@@ -14,6 +14,7 @@ from utilities.enumerables import LogicalOperator, PaymentMethod, PaymentStatus,
 
 router = APIRouter()
 
+
 @router.get(
     "/payments/",
     response_model=list[RelationalPaymentPublic],
@@ -34,11 +35,7 @@ async def get_payments(
 
     payments_query = select(Payment).offset(offset).limit(limit)
     payments = await session.execute(payments_query)
-
-    payments_list = payments.scalars().all()
-
-    return payments_list
-
+    return payments.scalars().all()
 
 
 @router.post(
@@ -58,7 +55,6 @@ async def create_payment(
         _token: str = Depends(oauth2_scheme),
 ):
     try:
-
         db_payment = Payment(
             payment_datetime=payment_create.payment_datetime,
             payment_method=payment_create.payment_method,
@@ -68,8 +64,6 @@ async def create_payment(
             invoice_id=payment_create.invoice_id,
         )
 
-
-        # Persist to database with explicit transaction control
         session.add(db_payment)
         await session.commit()
         await session.refresh(db_payment)
@@ -83,12 +77,12 @@ async def create_payment(
             detail=f"شناسه تراکنش قبلا وارد شده است"
         )
     except Exception as e:
-        # Critical error handling with transaction rollback
         await session.rollback()
         raise HTTPException(
             status_code=500,
             detail=f"{e}خطا در ایجاد پرداخت: "
         )
+
 
 @router.get(
     "/payments/{payment_id}",
@@ -107,15 +101,11 @@ async def get_payment(
         _token: str = Depends(oauth2_scheme),
 ):
 
-    # Attempt to retrieve the author record from the database
     payment = await session.get(Payment, payment_id)
-
-    # If the author is found, process the data and add necessary links
     if not payment:
         raise HTTPException(status_code=404, detail="پرداخت پیدا نشد")
 
     return payment
-
 
 
 @router.patch(
@@ -135,19 +125,14 @@ async def patch_payment(
         ),
         _token: str = Depends(oauth2_scheme),
 ):
-    # Retrieve the author record from the database using the provided ID.
     payment = await session.get(Payment, payment_id)
     if not payment:
         raise HTTPException(status_code=404, detail="پرداخت پیدا نشد")
 
-    # Prepare the update data, excluding unset fields.
     payment_data = payment_update.model_dump(exclude_unset=True)
 
-    # Apply the update to the author record.
     payment.sqlmodel_update(payment_data)
 
-    # Commit the transaction and refresh the instance to reflect the changes.
-    session.add(payment)
     await session.commit()
     await session.refresh(payment)
 
@@ -170,18 +155,13 @@ async def delete_payment(
     ),
     _token: str = Depends(oauth2_scheme),
 ):
-    # Fetch the author record from the database using the provided ID.
     payment = await session.get(Payment, payment_id)
-
-    # If the author is not found, raise a 404 Not Found error.
     if not payment:
         raise HTTPException(status_code=404, detail="پرداخت پیدا نشد")
 
-    # Proceed to delete the author if the above conditions are met.
     await session.delete(payment)
-    await session.commit()  # Commit the transaction to apply the changes
+    await session.commit()
 
-    # Return the author information after deletion.
     return {"msg": "پرداخت با موفقیت حذف شد"}
 
 @router.get(
@@ -206,13 +186,7 @@ async def search_payments(
         ),
         _token: str = Depends(oauth2_scheme),
 ):
-
-    conditions = []  # Initialize the list of filter conditions
-
-    # Start building the query to fetch authors with pagination.
-    query = select(Payment).offset(offset).limit(limit)
-
-    # Add filters to the conditions list if the corresponding arguments are provided.
+    conditions = []
     if payment_datetime:
         conditions.append(Payment.payment_datetime == payment_datetime)
     if transaction_id:
@@ -222,25 +196,21 @@ async def search_payments(
     if payment_status:
         conditions.append(Payment.payment_status == payment_status)
 
-    # If no conditions are provided, raise an error.
     if not conditions:
         raise HTTPException(status_code=400, detail="هیچ مقداری برای جست و جو وجود ندارد")
 
-    # Apply the logical operator (AND, OR, or NOT) to combine the conditions.
     if operator == LogicalOperator.AND:
-        query = query.where(and_(*conditions))
+        query = select(Payment).where(and_(*conditions))
     elif operator == LogicalOperator.OR:
-        query = query.where(or_(*conditions))
+        query = select(Payment).where(or_(*conditions))
     elif operator == LogicalOperator.NOT:
-        query = query.where(and_(not_(*conditions)))
+        query = select(Payment).where(and_(not_(*conditions)))
     else:
         raise HTTPException(status_code=400, detail="عملگر نامعتبر مشخص شده است")
 
-    # Execute the query asynchronously.
+    query = query.offset(offset).limit(limit)
     payment_db = await session.execute(query)
-    payments = payment_db.scalars().all()  # Retrieve all authors that match the conditions
-
-    # If no authors are found, raise a "not found" error.
+    payments = payment_db.scalars().all()
     if not payments:
         raise HTTPException(status_code=404, detail="پرداخت پیدا نشد")
 

@@ -15,6 +15,7 @@ from utilities.enumerables import LogicalOperator, AdminRole, AdminStatus
 
 router = APIRouter()
 
+
 @router.get(
     "/admins/",
     response_model=list[RelationalAdminPublic] | RelationalAdminPublic,
@@ -33,16 +34,12 @@ async def get_admins(
     _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == AdminRole.GENERAL_ADMIN.value:
-        admin = await session.get(Admin, _user["id"])
-
-        return admin
+        return await session.get(Admin, _user["id"])
 
     admins_query = select(Admin).offset(offset).limit(limit)
     admins = await session.execute(admins_query)
+    return admins.scalars().all()
 
-    admins_list = admins.scalars().all()
-
-    return admins_list
 
 @router.post(
     "/admins/",
@@ -60,16 +57,11 @@ async def create_admin(
         ),
         _token: str = Depends(oauth2_scheme),
 ):
-    if _user["role"] == AdminRole.GENERAL_ADMIN.value:
-        final_role = AdminRole.GENERAL_ADMIN.value
-    else:
-        final_role = admin_create.role
+    final_role = AdminRole.GENERAL_ADMIN.value if _user["role"] == AdminRole.GENERAL_ADMIN.value else admin_create.role
 
-    # Securely hash password before persistence
     hashed_password = get_password_hash(admin_create.password)
 
     try:
-
         db_admin = Admin(
             name_prefix=admin_create.name_prefix,
             first_name=admin_create.first_name,
@@ -88,8 +80,6 @@ async def create_admin(
             password=hashed_password,
         )
 
-
-        # Persist to database with explicit transaction control
         session.add(db_admin)
         await session.commit()
         await session.refresh(db_admin)
@@ -103,12 +93,12 @@ async def create_admin(
             detail="نام کاربری یا پست الکترونیکی یا کد ملی قبلا ثبت شده است"
         )
     except Exception as e:
-        # Critical error handling with transaction rollback
         await session.rollback()
         raise HTTPException(
             status_code=500,
             detail=f"{e}خطا در ایجاد ادمین: "
         )
+
 
 @router.get(
     "/admins/{admin_id}",
@@ -126,27 +116,15 @@ async def get_admin(
         ),
         _token: str = Depends(oauth2_scheme),
 ):
-    """
-    Retrieves the detailed information of a specific author, including their associated posts.
-
-    This endpoint allows authenticated users with appropriate roles (FULL, ADMIN, or AUTHOR) to retrieve
-    an author's public information and their posts by providing the author's unique ID.
-
-    - **author_id**: The unique identifier of the author.
-    """
     if _user["role"] == AdminRole.GENERAL_ADMIN.value and admin_id != UUID(_user["id"]):
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای مشاهده اطلاعات ادمین های  دیگر را ندارید")
 
-    # Attempt to retrieve the author record from the database
     admin = await session.get(Admin, admin_id)
-
-    # If the author is found, process the data and add necessary links
     if not admin:
         raise HTTPException(status_code=404, detail="ادمین پیدا نشد")
 
     return admin
-
 
 
 @router.patch(
@@ -171,26 +149,16 @@ async def patch_admin(
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای ویرایش اطلاعات ادمین های  دیگر را ندارید")
 
-    # Retrieve the author record from the database using the provided ID.
     admin = await session.get(Admin, admin_id)
     if not admin:
         raise HTTPException(status_code=404, detail="ادمین پیدا نشد")
 
-    # Prepare the update data, excluding unset fields.
-    admin_data = admin_update.model_dump(exclude_unset=True)
-    extra_data = {}
+    update_data = admin_update.model_dump(exclude_unset=True)
+    if "password" in update_data:
+        update_data["password"] = get_password_hash(update_data["password"])
 
-    # If the password is being updated, hash it before saving.
-    if "password" in admin_data.keys():
-        password = admin_data["password"]
-        hashed_password = get_password_hash(password)
-        extra_data["password"] = hashed_password
+    admin.sqlmodel_update(update_data)
 
-    # Apply the update to the author record.
-    admin.sqlmodel_update(admin_data, update=extra_data)
-
-    # Commit the transaction and refresh the instance to reflect the changes.
-    session.add(admin)
     await session.commit()
     await session.refresh(admin)
 
@@ -217,19 +185,15 @@ async def delete_admin(
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای حذف ادمین های  دیگر را ندارید")
 
-    # Fetch the author record from the database using the provided ID.
     admin = await session.get(Admin, admin_id)
-
-    # If the author is not found, raise a 404 Not Found error.
     if not admin:
         raise HTTPException(status_code=404, detail="ادمین پیدا نشد")
 
-    # Proceed to delete the author if the above conditions are met.
     await session.delete(admin)
-    await session.commit()  # Commit the transaction to apply the changes
+    await session.commit()
 
-    # Return the author information after deletion.
     return {"msg": "ادمین با موفقیت حذف شد"}
+
 
 @router.get(
     "/admins/search/",
@@ -251,18 +215,11 @@ async def search_admins(
         _user: dict = Depends(
             require_roles(
                 AdminRole.SUPER_ADMIN.value,
-                AdminRole.GENERAL_ADMIN.value,
             )
         ),
         _token: str = Depends(oauth2_scheme),
 ):
-
-    conditions = []  # Initialize the list of filter conditions
-
-    # Start building the query to fetch authors with pagination.
-    query = select(Admin).offset(offset).limit(limit)
-
-    # Add filters to the conditions list if the corresponding arguments are provided.
+    conditions = []
     if username:
         conditions.append(Admin.username.ilike(f"%{username}%"))
     if email:
@@ -278,28 +235,22 @@ async def search_admins(
     if phone:
         conditions.append(Admin.phone == phone)
 
-
-    # If no conditions are provided, raise an error.
     if not conditions:
         raise HTTPException(status_code=400, detail="هیچ مقداری برای جست و جو وجود ندارد")
 
-    # Apply the logical operator (AND, OR, or NOT) to combine the conditions.
     if operator == LogicalOperator.AND:
-        query = query.where(and_(*conditions))
+        query = select(Admin).where(and_(*conditions))
     elif operator == LogicalOperator.OR:
-        query = query.where(or_(*conditions))
+        query = select(Admin).where(or_(*conditions))
     elif operator == LogicalOperator.NOT:
-        query = query.where(and_(not_(*conditions)))
+        query = select(Admin).where(and_(not_(*conditions)))
     else:
         raise HTTPException(status_code=400, detail="عملگر نامعتبر مشخص شده است")
 
-    # Execute the query asynchronously.
-    admin_db = await session.execute(query)
-    admins = admin_db.scalars().all()  # Retrieve all authors that match the conditions
-
-    # If no authors are found, raise a "not found" error.
+    query = query.offset(offset).limit(limit)
+    result = await session.execute(query)
+    admins = result.scalars().all()
     if not admins:
         raise HTTPException(status_code=404, detail="مشتری پیدا نشد")
 
     return admins
-

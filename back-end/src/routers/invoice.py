@@ -13,6 +13,7 @@ from utilities.enumerables import LogicalOperator, InvoiceStatus, AdminRole, Cus
 
 router = APIRouter()
 
+
 @router.get(
     "/invoices/",
     response_model=list[RelationalInvoicePublic],
@@ -38,16 +39,11 @@ async def get_invoices(
             .where(Rental.customer_id == _user["id"])
         )
         result = await session.execute(invoice_query)
-        invoices_list = result.scalars().unique().all()
-        return invoices_list
+        return result.scalars().unique().all()
 
     invoices_query = select(Invoice).offset(offset).limit(limit)
     invoices = await session.execute(invoices_query)
-
-    invoices_list = invoices.scalars().all()
-
-    return invoices_list
-
+    return invoices.scalars().all()
 
 
 @router.post(
@@ -68,7 +64,6 @@ async def create_invoice(
         _token: str = Depends(oauth2_scheme),
 ):
     try:
-
         db_invoice = Invoice(
             total_amount=invoice_create.total_amount,
             tax=invoice_create.tax,
@@ -77,22 +72,19 @@ async def create_invoice(
             status=invoice_create.status,
         )
 
-
-        # Persist to database with explicit transaction control
         session.add(db_invoice)
         await session.commit()
         await session.refresh(db_invoice)
 
         return db_invoice
 
-
     except Exception as e:
-        # Critical error handling with transaction rollback
         await session.rollback()
         raise HTTPException(
             status_code=500,
             detail=f"{e}خطا در ایجاد فاکتور: "
         )
+
 
 @router.get(
     "/invoices/{invoice_id}",
@@ -111,10 +103,7 @@ async def get_invoice(
         ),
         _token: str = Depends(oauth2_scheme),
 ):
-    # Attempt to retrieve the author record from the database
     invoice = await session.get(Invoice, invoice_id)
-
-    # If the author is found, process the data and add necessary links
     if not invoice:
         raise HTTPException(status_code=404, detail="فاکتور پیدا نشد")
 
@@ -153,7 +142,6 @@ async def patch_invoice(
         ),
         _token: str = Depends(oauth2_scheme),
 ):
-    # Retrieve the author record from the database using the provided ID.
     invoice = await session.get(Invoice, invoice_id)
     if not invoice:
         raise HTTPException(status_code=404, detail="فاکتور پیدا نشد")
@@ -171,14 +159,10 @@ async def patch_invoice(
             raise HTTPException(status_code=403,
                                 detail="شما دسترسی لازم برای ویرایش اطلاعات فاکتور های  دیگر را ندارید")
 
-    # Prepare the update data, excluding unset fields.
     invoice_data = invoice_update.model_dump(exclude_unset=True)
 
-    # Apply the update to the author record.
     invoice.sqlmodel_update(invoice_data)
 
-    # Commit the transaction and refresh the instance to reflect the changes.
-    session.add(invoice)
     await session.commit()
     await session.refresh(invoice)
 
@@ -202,10 +186,7 @@ async def delete_invoice(
     ),
     _token: str = Depends(oauth2_scheme),
 ):
-    # Fetch the author record from the database using the provided ID.
     invoice = await session.get(Invoice, invoice_id)
-
-    # If the author is not found, raise a 404 Not Found error.
     if not invoice:
         raise HTTPException(status_code=404, detail="فاکتور پیدا نشد")
 
@@ -222,12 +203,11 @@ async def delete_invoice(
             raise HTTPException(status_code=403,
                                 detail="شما دسترسی لازم برای حذف اطلاعات فاکتور های  دیگر را ندارید")
 
-    # Proceed to delete the author if the above conditions are met.
     await session.delete(invoice)
-    await session.commit()  # Commit the transaction to apply the changes
+    await session.commit()
 
-    # Return the author information after deletion.
     return {"msg": "فاکتور با موفقیت حذف شد"}
+
 
 @router.get(
     "/invoices/search/",
@@ -253,16 +233,7 @@ async def search_invoices(
         ),
         _token: str = Depends(oauth2_scheme),
 ):
-
-    conditions = []  # Initialize the list of filter conditions
-
-    # Start building the query to fetch authors with pagination.
-    query = select(Invoice).offset(offset).limit(limit)
-
-    if _user["role"] == CustomerRole.CUSTOMER.value:
-        query = query.join(Rental).where(Rental.customer_id == _user["id"])
-
-    # Add filters to the conditions list if the corresponding arguments are provided.
+    conditions = []
     if total_amount:
         conditions.append(Invoice.total_amount >= total_amount)
     if tax:
@@ -274,24 +245,24 @@ async def search_invoices(
     if status:
         conditions.append(Invoice.status == status)
 
-    # If no conditions are provided, raise an error.
     if not conditions:
         raise HTTPException(status_code=400, detail="هیچ مقداری برای جست و جو وجود ندارد")
 
-    # Apply the logical operator (AND, OR, or NOT) to combine the conditions.
     if operator == LogicalOperator.AND:
-        query = query.where(and_(*conditions))
+        query = select(Invoice).where(and_(*conditions))
     elif operator == LogicalOperator.OR:
-        query = query.where(or_(*conditions))
+        query = select(Invoice).where(or_(*conditions))
     elif operator == LogicalOperator.NOT:
-        query = query.where(and_(not_(*conditions)))
+        query = select(Invoice).where(and_(not_(*conditions)))
     else:
         raise HTTPException(status_code=400, detail="عملگر نامعتبر مشخص شده است")
 
-    # Execute the query asynchronously.
+    query = query.offset(offset).limit(limit)
+    if _user["role"] == CustomerRole.CUSTOMER.value:
+        query = query.join(Rental).where(Rental.customer_id == _user["id"])
+
     invoice_db = await session.execute(query)
     invoices = invoice_db.scalars().all()
-
     if not invoices:
         raise HTTPException(status_code=404, detail="فاکتور پیدا نشد")
 
