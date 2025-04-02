@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
 from database import lifespan
-from routers import customer, admin, invoice, payment, rental, vehicle, vehicle_insurance, comment, post, authentication
+from routers import customer, admin, invoice, payment, rental, vehicle, vehicle_insurance, comment, post, \
+    authentication, api_status
 
 description = """
 A lightweight RESTful API for a CRMS application using FastAPI and SQLModel 🚀
@@ -27,6 +28,7 @@ app = FastAPI(lifespan=lifespan,
 
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=4)
 
+
 origins = [
     "http://localhost:3000",
     "https://localhost:3000",
@@ -42,6 +44,7 @@ app.add_middleware(
     allow_headers=["Content-Type", "accept", "Authorization", "Authorization-Refresh"],
 )
 
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
@@ -51,6 +54,8 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     return response
 
+
+app.include_router(api_status.router, tags=["api status"])
 app.include_router(authentication.router, tags=["authentication"])
 app.include_router(customer.router, tags=["customers"])
 app.include_router(vehicle.router, tags=["vehicles"])
