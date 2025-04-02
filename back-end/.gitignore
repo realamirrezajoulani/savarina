@@ -1,2 +1,10 @@
 src/.idea/
 src/__pycache__/
+src/alembic/__pycache__/
+src/alembic/versions/__pycache__/
+src/models/__pycache__/
+src/routers/__pycache__/
+src/schemas/__pycache__/
+src/schemas/base/__pycache__/
+src/test/__pycache__/
+src/utilities/__pycache__/
