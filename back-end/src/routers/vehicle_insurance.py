@@ -140,7 +140,7 @@ async def patch_vehicle_insurance(
 
 @router.delete(
     "/vehicle_insurances/{vehicle_insurance_id}",
-    response_model=RelationalVehicleInsurancePublic,
+    response_model=dict[str, str],
 )
 async def delete_vehicle_insurance(
     *,
@@ -178,6 +178,13 @@ async def search_vehicle_insurances(
         operator: LogicalOperator,
         offset: int = Query(default=0, ge=0),
         limit: int = Query(default=100, le=100),
+        _user: dict = Depends(
+            require_roles(
+                AdminRole.SUPER_ADMIN.value,
+                AdminRole.GENERAL_ADMIN.value,
+            )
+        ),
+        _token: str = Depends(oauth2_scheme),
 ):
 
     conditions = []

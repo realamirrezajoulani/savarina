@@ -109,7 +109,7 @@ async def get_rental(
     if not rental:
         raise HTTPException(status_code=404, detail="کرایه پیدا نشد")
 
-    if _user["role"] == CustomerRole.CUSTOMER.value and rental.customer_id != _user["id"]:
+    if _user["role"] == CustomerRole.CUSTOMER.value and rental.customer_id != uuid.UUID(_user["id"]):
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای مشاهده اطلاعات کرایه های  دیگر را ندارید")
 
@@ -138,7 +138,7 @@ async def patch_rental(
     if not rental:
         raise HTTPException(status_code=404, detail="کرایه پیدا نشد")
 
-    if _user["role"] == CustomerRole.CUSTOMER.value and rental.customer_id != _user["id"]:
+    if _user["role"] == CustomerRole.CUSTOMER.value and rental.customer_id != uuid.UUID(_user["id"]):
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای ویرایش اطلاعات کرایه های  دیگر را ندارید")
 
@@ -154,7 +154,7 @@ async def patch_rental(
 
 @router.delete(
     "/rentals/{rental_id}",
-    response_model=RelationalRentalPublic,
+    response_model=dict[str, str],
 )
 async def delete_rental(
     *,
@@ -174,7 +174,7 @@ async def delete_rental(
     if not rental:
         raise HTTPException(status_code=404, detail="کرایه پیدا نشد")
 
-    if _user["role"] == CustomerRole.CUSTOMER.value and rental.customer_id != _user["id"]:
+    if _user["role"] == CustomerRole.CUSTOMER.value and rental.customer_id != uuid.UUID(_user["id"]):
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای حذف کرایه های  دیگر را ندارید")
 

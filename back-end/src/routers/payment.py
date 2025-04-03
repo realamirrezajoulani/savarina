@@ -141,7 +141,7 @@ async def patch_payment(
 
 @router.delete(
     "/payments/{payment_id}",
-    response_model=RelationalPaymentPublic,
+    response_model=dict[str, str],
 )
 async def delete_payment(
     *,

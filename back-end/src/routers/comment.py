@@ -112,9 +112,9 @@ async def patch_comment(
     if not comment:
         raise HTTPException(status_code=404, detail="کامنت پیدا نشد")
 
-    if _user["role"] == CustomerRole.CUSTOMER.value and comment.customer_id != _user["id"]:
+    if _user["role"] == CustomerRole.CUSTOMER.value and comment.customer_id != UUID(_user["id"]):
         raise HTTPException(status_code=403,
-                            detail="شما دسترسی لازم برای ویرایش اطلاعات نظر های  دیگر را ندارید")
+                            detail="شما دسترسی لازم برای ویرایش اطلاعات نظر های دیگر را ندارید")
 
     comment_data = comment_update.model_dump(exclude_unset=True)
 
@@ -128,7 +128,7 @@ async def patch_comment(
 
 @router.delete(
     "/comments/{comment_id}",
-    response_model=RelationalCommentPublic,
+    response_model=dict[str, str],
 )
 async def delete_comment(
     *,
@@ -147,7 +147,7 @@ async def delete_comment(
     if not comment:
         raise HTTPException(status_code=404, detail="کامنت پیدا نشد")
 
-    if _user["role"] == CustomerRole.CUSTOMER.value and comment.customer_id != _user["id"]:
+    if _user["role"] == CustomerRole.CUSTOMER.value and comment.customer_id != UUID(_user["id"]):
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای ویرایش اطلاعات نظر های  دیگر را ندارید")
 

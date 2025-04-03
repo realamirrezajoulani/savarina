@@ -131,7 +131,7 @@ async def patch_vehicle(
 
 @router.delete(
     "/vehicles/{vehicle_id}",
-    response_model=RelationalVehiclePublic,
+    response_model=dict[str, str],
 )
 async def delete_vehicle(
     *,

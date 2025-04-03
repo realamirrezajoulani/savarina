@@ -157,7 +157,7 @@ async def patch_customer(
 
 @router.delete(
     "/customers/{customer_id}",
-    response_model=RelationalCustomerPublic,
+    response_model=dict[str, str],
 )
 async def delete_customer(
     *,

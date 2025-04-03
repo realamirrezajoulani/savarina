@@ -171,7 +171,7 @@ async def patch_invoice(
 
 @router.delete(
     "/invoices/{invoice_id}",
-    response_model=RelationalInvoicePublic,
+    response_model=dict[str, str],
 )
 async def delete_invoice(
     *,

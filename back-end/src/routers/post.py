@@ -106,7 +106,7 @@ async def patch_post(
     if not post:
         raise HTTPException(status_code=404, detail="پست پیدا نشد")
 
-    if _user["role"] == AdminRole.GENERAL_ADMIN.value and post.admin_id != _user["id"]:
+    if _user["role"] == AdminRole.GENERAL_ADMIN.value and post.admin_id != uuid.UUID(_user["id"]):
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای ویرایش اطلاعات پست های  دیگر را ندارید")
 
@@ -122,7 +122,7 @@ async def patch_post(
 
 @router.delete(
     "/posts/{post_id}",
-    response_model=RelationalPostPublic,
+    response_model=dict[str, str],
 )
 async def delete_post(
     *,
@@ -140,7 +140,7 @@ async def delete_post(
     if not post:
         raise HTTPException(status_code=404, detail="پست پیدا نشد")
 
-    if _user["role"] == AdminRole.GENERAL_ADMIN.value and post.admin_id != _user["id"]:
+    if _user["role"] == AdminRole.GENERAL_ADMIN.value and post.admin_id != uuid.UUID(_user["id"]):
         raise HTTPException(status_code=403,
                             detail="شما دسترسی لازم برای حذف پست های  دیگر را ندارید")
 

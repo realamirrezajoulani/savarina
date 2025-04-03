@@ -167,7 +167,7 @@ async def patch_admin(
 
 @router.delete(
     "/admins/{admin_id}",
-    response_model=RelationalAdminPublic,
+    response_model=dict[str, str],
 )
 async def delete_admin(
     *,
