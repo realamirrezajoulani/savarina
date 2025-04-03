@@ -5,7 +5,7 @@ from fastapi.responses import ORJSONResponse
 
 from database import lifespan
 from routers import customer, admin, invoice, payment, rental, vehicle, vehicle_insurance, comment, post, \
-    authentication, api_status
+    authentication, api_status, stats
 
 description = """
 A lightweight RESTful API for a CRMS application using FastAPI and SQLModel 🚀
@@ -66,3 +66,4 @@ app.include_router(payment.router, tags=["payments"])
 app.include_router(comment.router, tags=["comments"])
 app.include_router(post.router, tags=["posts"])
 app.include_router(admin.router, tags=["admins"])
+app.include_router(stats.router, tags=["stats"])

@@ -138,6 +138,7 @@ def validate_payment_datetime(value: str) -> str | HTTPException:
                    " مثال 20:05:04 1380/01/05 و باید یک تاریخ و ساعت معتبر باشد"
         )
 
+    j_dt = j_dt.replace(tzinfo=ZoneInfo("Asia/Tehran"))
     jd_tehran_now = datetime.now(ZoneInfo("Asia/Tehran"))
 
     if not (j_dt <= jd_tehran_now):
