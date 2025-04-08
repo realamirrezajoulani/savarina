@@ -7,7 +7,7 @@ from utilities.enumerables import Brand, CarStatus, BranchLocations
 
 class VehicleBase(SQLModel):
     plate_number: str = Field(
-        min_length=10,
+        min_length=8,
         max_length=12,
         unique=True,
         index=True,

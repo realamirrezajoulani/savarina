@@ -20,25 +20,25 @@ class InvoicePublic(InvoiceBase):
 class InvoiceUpdate(SQLModel):
     total_amount: int | None = Field(
         default=None,
-        ge=1000,
+        ge=0,
         le=99999999999999,
     )
 
     tax: int | None = Field(
         default=None,
-        ge=1000,
+        ge=0,
         le=999999999,
     )
 
     discount: int | None = Field(
         default=None,
-        ge=1000,
+        ge=0,
         le=999999999,
     )
 
     final_amount: int | None = Field(
         default=None,
-        ge=1000,
+        ge=0,
         le=99999999999999,
     )
 

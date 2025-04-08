@@ -21,10 +21,11 @@ class VehiclePublic(VehicleBase):
 class VehicleUpdate(SQLModel):
     plate_number: str | None = Field(
         default=None,
-        min_length=10,
-        max_length=10,
+        min_length=8,
+        max_length=12,
         unique=True,
         index=True,
+        schema_extra={"pattern": r"^\d{2}([ب-ی]|الف)\d{3}-\d{2}$"},
     )
 
     brand: Brand | None = Field(
