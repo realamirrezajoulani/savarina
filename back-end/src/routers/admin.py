@@ -49,15 +49,15 @@ async def create_admin(
         *,
         session: AsyncSession = Depends(get_session),
         admin_create: AdminCreate,
-        _user: dict = Depends(
-            require_roles(
-                AdminRole.SUPER_ADMIN.value,
-                AdminRole.GENERAL_ADMIN.value,
-            )
-        ),
-        _token: str = Depends(oauth2_scheme),
+        # _user: dict = Depends(
+        #     require_roles(
+        #         AdminRole.SUPER_ADMIN.value,
+        #         AdminRole.GENERAL_ADMIN.value,
+        #     )
+        # ),
+        # _token: str = Depends(oauth2_scheme),
 ):
-    final_role = AdminRole.GENERAL_ADMIN.value if _user["role"] == AdminRole.GENERAL_ADMIN.value else admin_create.role
+    # final_role = AdminRole.GENERAL_ADMIN.value if _user["role"] == AdminRole.GENERAL_ADMIN.value else admin_create.role
 
     hashed_password = get_password_hash(admin_create.password)
 
@@ -75,7 +75,7 @@ async def create_admin(
             address=admin_create.address,
             username=admin_create.username,
             email=admin_create.email,
-            role=final_role,
+            role=admin_create.role,
             status=admin_create.status,
             password=hashed_password,
         )
