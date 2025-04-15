@@ -1,0 +1,16 @@
+.sliderBox{
+    overflow-x: auto;
+    padding: 20px 0;
+}
+
+.sliderBox::-webkit-scrollbar{
+    display: none;
+}
+
+.content__sliderBox{
+    width: auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    width: max-content;
+}

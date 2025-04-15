@@ -1,0 +1,115 @@
+:root{
+    --white : white;
+    --primary-bg : black;
+}
+
+
+@font-face {
+    font-family: "iransans";
+    src: url(../fonts/IRANSans/IRANSans.ttf);
+}
+
+@font-face {
+    font-family: "lalezar";
+    src: url(../fonts/Lalezar-Font/TTF/Lalezar-Regular.ttf);
+}
+
+body {
+    overflow-x: hidden !important;
+    font-family: "iransans" !important;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+Typography,
+li,
+input {
+    font-family: "iransans" !important;
+}
+
+
+.lalezar {
+    font-family: "lalezar" !important;
+}
+
+.iransans {
+    font-family: "iransans" !important;
+}
+
+
+.bgNavbar {
+    background-color: rgba(255, 255, 255, 0.386);
+    backdrop-filter: blur(20px);
+}
+
+.bgImg__poster {
+    background-image: linear-gradient(45deg, rgb(0, 0, 0), transparent), url('/public/carReantal/f7.jpg') !important;
+}
+
+.titleSlider {
+    /* @apply text-3xl relative */
+    position: relative;
+    font-size: 30px;
+}
+
+.titleSlider::after {
+    content: '';
+    transform: rotate(25deg);
+    position: absolute;
+    top: 0;
+    right: -10px;
+    width: 5px;
+    height: 40px;
+    border-radius: 1rem;
+    background-color: black;
+    /* @apply bg-blue-gray-900 absolute top-[0px] -right-[10px] w-[5px] h-[40px] rounded-2xl */
+}
+
+.titleSlider::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: -10px;
+    width: 8rem;
+    height: 32px;
+    opacity: .2;
+    border-radius: 1rem;
+    background-color: rgba(0, 0, 0, 0.24);
+    /* @apply bg-blue-gray-500 absolute bottom-0 -right-[10px] w-32 h-[32px] opacity-20 rounded-2xl */
+}
+
+span >.w-0\.5 {
+    display: none !important;
+}
+
+.swal-footer{
+    text-align: center !important;
+}
+
+.swal-modal{
+    border-radius: 30px;
+}
+
+.swal-button {
+    background-color: black;
+    transition: all .4s;
+}
+.swal-button:hover {
+    background-color: white !important;
+    border: 2px solid black;
+    color: black;
+    box-shadow: none;
+    outline: none;
+    transform: scale(.9);
+}
+
+
+.swal-button--cancel{
+    background-color: white !important;
+}
