@@ -25,7 +25,7 @@ async def get_vehicles(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, le=100),
 ):
-    vehicles_query = select(Vehicle).offset(offset).limit(limit)
+    vehicles_query = select(Vehicle).offset(offset).limit(limit).order_by(Vehicle.created_at)
     vehicles = await session.execute(vehicles_query)
     return vehicles.scalars().all()
 

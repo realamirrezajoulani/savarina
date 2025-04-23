@@ -33,11 +33,11 @@ async def get_rentals(
     _token: str = Depends(oauth2_scheme),
 ):
     if _user["role"] == CustomerRole.CUSTOMER.value:
-        rental_query = select(Rental).where(Rental.customer_id == _user["id"])
+        rental_query = select(Rental).where(Rental.customer_id == _user["id"]).order_by(Rental.created_at)
         rentals = await session.execute(rental_query)
         return rentals.scalars().all()
 
-    rentals_query = select(Rental).offset(offset).limit(limit)
+    rentals_query = select(Rental).offset(offset).limit(limit).order_by(Rental.created_at)
     rentals = await session.execute(rentals_query)
     return rentals.scalars().all()
 

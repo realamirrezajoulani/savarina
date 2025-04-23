@@ -33,7 +33,7 @@ async def get_payments(
     _token: str = Depends(oauth2_scheme),
 ):
 
-    payments_query = select(Payment).offset(offset).limit(limit)
+    payments_query = select(Payment).offset(offset).limit(limit).order_by(Payment.created_at)
     payments = await session.execute(payments_query)
     return payments.scalars().all()
 

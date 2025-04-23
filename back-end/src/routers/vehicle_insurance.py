@@ -32,7 +32,7 @@ async def get_vehicle_insurances(
     ),
     _token: str = Depends(oauth2_scheme),
 ):
-    vehicle_insurances_query = select(VehicleInsurance).offset(offset).limit(limit)
+    vehicle_insurances_query = select(VehicleInsurance).offset(offset).limit(limit).order_by(VehicleInsurance.created_at)
     vehicle_insurances = await session.execute(vehicle_insurances_query)
     return vehicle_insurances.scalars().all()
 

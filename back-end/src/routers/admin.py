@@ -36,7 +36,7 @@ async def get_admins(
     if _user["role"] == AdminRole.GENERAL_ADMIN.value:
         return await session.get(Admin, _user["id"])
 
-    admins_query = select(Admin).offset(offset).limit(limit)
+    admins_query = select(Admin).offset(offset).limit(limit).order_by(Admin.created_at)
     admins = await session.execute(admins_query)
     return admins.scalars().all()
 

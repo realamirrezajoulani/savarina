@@ -36,7 +36,7 @@ async def get_customers(
     if _user["role"] == CustomerRole.CUSTOMER.value:
         return await session.get(Customer, _user["id"])
 
-    customers_query = select(Customer).offset(offset).limit(limit)
+    customers_query = select(Customer).offset(offset).limit(limit).order_by(Customer.created_at)
     customers = await session.execute(customers_query)
     return customers.scalars().all()
 

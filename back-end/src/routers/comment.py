@@ -24,7 +24,7 @@ async def get_comments(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, le=100),
 ):
-    comments_query = select(Comment).offset(offset).limit(limit)
+    comments_query = select(Comment).offset(offset).limit(limit).order_by(Comment.created_at)
     comments = await session.execute(comments_query)
     return comments.scalars().all()
 

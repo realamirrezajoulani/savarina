@@ -24,7 +24,7 @@ async def get_posts(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, le=100),
 ):
-    posts_query = select(Post).offset(offset).limit(limit)
+    posts_query = select(Post).offset(offset).limit(limit).order_by(Post.created_at)
     posts = await session.execute(posts_query)
     return posts.scalars().all()
 

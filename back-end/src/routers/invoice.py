@@ -37,11 +37,12 @@ async def get_invoices(
             select(Invoice)
             .join(Rental)
             .where(Rental.customer_id == _user["id"])
+            .order_by(Invoice.created_at)
         )
         result = await session.execute(invoice_query)
         return result.scalars().unique().all()
 
-    invoices_query = select(Invoice).offset(offset).limit(limit)
+    invoices_query = select(Invoice).offset(offset).limit(limit).order_by(Invoice.created_at)
     invoices = await session.execute(invoices_query)
     return invoices.scalars().all()
 
