@@ -6,7 +6,7 @@ router = APIRouter()
 
 
 @router.head("/ping/")
-async def ping() -> dict[str, str]:
+def ping() -> dict[str, str]:
     start_time = datetime.now(timezone.utc)
     response = {"msg": "This is good!"}
     end_time = datetime.now(timezone.utc)
