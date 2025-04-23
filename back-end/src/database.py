@@ -44,3 +44,4 @@ async def lifespan(_: FastAPI):
 
     # Cleanup and dispose of the database engine after the application shuts down
     await async_engine.dispose()
+
