@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
 from database import lifespan
-from routers import customer, admin, invoice, payment, rental, vehicle, vehicle_insurance, comment, post, \
+from routers import backup, customer, admin, invoice, payment, rental, vehicle, vehicle_insurance, comment, post, \
     authentication, api_status, stats
 
 description = """
@@ -56,6 +56,7 @@ async def add_security_headers(request: Request, call_next):
 
 
 app.include_router(api_status.router, tags=["api status"])
+app.include_router(backup.router, tags=["backup"])
 app.include_router(authentication.router, tags=["authentication"])
 app.include_router(customer.router, tags=["customers"])
 app.include_router(vehicle.router, tags=["vehicles"])
@@ -67,3 +68,4 @@ app.include_router(comment.router, tags=["comments"])
 app.include_router(post.router, tags=["posts"])
 app.include_router(admin.router, tags=["admins"])
 app.include_router(stats.router, tags=["stats"])
+
