@@ -28,6 +28,7 @@ Costume for Iranian and Persian-speaking users
 #### Validation & Security
 Pydantic input validation<br>
 Environment-driven secrets and configurable settings
+***and more features you can read it***
 ## front-end
 -
 # Setup & Installation
@@ -35,7 +36,7 @@ Environment-driven secrets and configurable settings
 1. Clone the repository
 ```bash
 git clone https://github.com/realamirrezajoulani/savarina.git
-cd back-end
+cd savarina/back-end
 ```
 1.5. Configure environment variables
 in windows CMD:
