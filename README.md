@@ -13,7 +13,7 @@ Super Admins configure global settings, manage all users/admins, and monitor sys
 ### Live API Docs: https://crms-ddmm.onrender.com/docs/
 
 # Key Features
-## Backend
+## back-end
 FastAPI-powered REST API with automatic Swagger & ReDoc docs<br>
 Data models via SQLModel (SQLAlchemy) and PostgreSQL storage
 #### Authentication & RBAC
@@ -28,7 +28,47 @@ Costume for Iranian and Persian-speaking users
 #### Validation & Security
 Pydantic input validation<br>
 Environment-driven secrets and configurable settings
+## front-end
+-
+# Setup & Installation
+## back-end
+1. Clone the repository
+```bash
+git clone https://github.com/realamirrezajoulani/savarina.git
+cd back-end
+```
+1.5. Configure environment variables
+in windows CMD:
+```bash
+set CRMS_BACKUP_SECRET_KEY="<random security key>"                    # Please replace
+set CRMS_SECURITY_KEY="<random security key>"                         # Please replace
+set POSTGRESQL_URL="postgresql+asyncpg://<your postgres url>"         # Please replace ((If you are using Postgres, use the asyncpg driver, otherwise you can use any async driver)
+```
+in windows PowerShell:
+```bash
+$env:CRMS_BACKUP_SECRET_KEY="<random security key>"                    # Please replace
+$env:CRMS_SECURITY_KEY="<random security key>"                         # Please replace
+$env:POSTGRESQL_URL="postgresql+asyncpg://<your postgres url>"         # Please replace (If you are using Postgres, use the asyncpg driver, otherwise you can use any async driver)
+```
 
-
-
-
+2. Create & activate a virtual environment
+```bash
+python3 -m venv .venv
+cd .venv/Scripts
+activate.bat
+cd ..          # return to .venv folder
+cd ..          # return to back-end folder
+```
+3. Install dependencies
+```bash
+cd src         # go to back-end/src
+pip install --upgrade pip
+pip install -r requirements-dev.txt
+```
+4. Run
+```bash
+python main.py
+```
+## front-end
+-
+I welcome any comments via any means of communication.
