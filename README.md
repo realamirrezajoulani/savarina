@@ -10,7 +10,7 @@ Admins manage fleet inventory, oversee bookings, and coordinate delivery agents.
 Super Admins configure global settings, manage all users/admins, and monitor system analytics.<br>
 
 
-### Live API Docs: https://crms-ddmm.onrereder.com/docs/
+### Live API Docs: https://crms-ddmm.onrender.com/docs/
 
 # Key Features
 ## Backend
