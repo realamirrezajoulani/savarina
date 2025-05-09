@@ -27,7 +27,7 @@ Online booking + in-person pickup combinations<br>
 Costume for Iranian and Persian-speaking users
 #### Validation & Security
 Pydantic input validation<br>
-Environment-driven secrets and configurable settings
+Environment-driven secrets and configurable settings<br>
 ***and more features you can read it***
 ## front-end
 -
